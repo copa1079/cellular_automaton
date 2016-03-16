@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
 """
+Created on Wed Mar 15 13:31:18 2016
+
+@author: ccp127
+
 script that attempts to calculate the flow of ice in a 2-D grid space
 using LandLab. This code has been inspired by the mapping Hedge example 
 written by Gregory M. Tucker. This code has also been inspired by the 
@@ -6,22 +11,20 @@ component for the thin ice approximation in LandLab.
 
 for more informaiton please go to LandLab.io
 
-@author: ccp127
-
-written by: Cole C. Pazar March 15th, 2016
 """
 from __future__ import division
 from landlab import RasterModelGrid
 import numpy as np
+import pylab as plt
 
-# other libraries that may be needed...
+plt.clf() 
 
+##other libraries that may be needed...
 #from landlab.io import read_esri_ascii
 #from landlab.plot.imshow import imshow_node_grid
 #from matplotlib import pyplot as plt
 
-# define parameters
-
+# initial parameters
 t_min = 0.0          # inital time [=] years
 t_max = 100.0        # final time [=] years
 dt = 0.001           # time step [=] years
@@ -31,29 +34,32 @@ dx = 1000.0          # node spacing [=] m
 z_max = 4100.0       # maximum elevation of valley floor [=] m
 side_S = 0.2         # slope of the valley sides
 S = 0.02             # slope of glacier elevation (linear function)
+    
+# ice proporties   
+Ho = 10.0            # initial H
+A = (2.1*10**(-16))  # Flow-Law parameter [=] Pa^-3 yr^-1
+N_flow = 3           # 3rd order rheology
+rho_ice = 917        # density of ice [=] kg m^-3
+g = 9.81             # gravity [=] m s^-2
+
+# climate parameters 
 ELA_mean = 3600.0    # mean equilibrium-line altitude [=] m
 gamma = 0.01         # mass balance coefficient [=] m/yr/m
 b_cap = 1.5          # cap on the mass balance [=] m/yr
 Amp = 500            # Amplitude of the oscillations [=] m
 P = 2000             # period of the ELA osillations [=] years
-A = (2.1*10**(-16))  # Flow-Law parameter [=] Pa^-3 yr^-1
-N_flow = 3           # 3rd order rheology
-rho_ice = 917        # density of ice [=] kg m^-3
-g = 9.81             # gravity [=] m s^-2
-Ho = 10.0
 
 # create a grid manually:
-
-num_rows = 5
-num_cols = 7
+num_rows = 10
+num_cols = 10
 mg = RasterModelGrid(num_rows, num_cols, dx)
+
 # imshow_node_grid(mg, name='elevation')
 
 """
 # alternativley, you can based it on a DEM with something like this... 
 (mg, z) = read_esri_ascii('upper_arkansas_10m.asc', name='elevation')
 """
-
 # create data fields
 
 z = mg.add_empty('node', 'elevation')
@@ -72,7 +78,13 @@ core_nodes = mg.core_nodes
 # setting up ice thickness
 z_ice[:] = z + H 
 
+# time
+
 class Glacier:
+    
+    # starting conditions
+    def start_conds(self, t_min, t_max, dt, x_min, x_max, dx, z_max, S, Ho):
+        self.timestep = np.arange(t_min, t_max+dt, dt).tolist() 
 
     # ELA
     def ELA_func(self, Amp, P, ELA_mean):
@@ -114,24 +126,24 @@ class Glacier:
 
         # more testing...
         print(z_ice)
-
-# run 
-def run (self, gamma, Amp, P, ELA_mean, dt, dx):
-    global t  # this makes it global to be bale to use in in the ELA_func index
-    for t in range(len(self.timestep)):
-        self.dQdx=new_glacier.dQdx_func(dx)
-        self.dHdt=new_glacier.b_func(gamma, Amp, P, ELA_mean)-self.dqdx
-        self.H+=self.dHdt*dt
-        self.z=self.H+self.zb
-        self.z=self.z
-        for i in range(0, len(self.z)):#bottom limit of z can't go below zb
-            if self.z[i]<self.zb[i]:
-                self.z[i]=self.zb[i]
-            if self.timestep[t] % 1 ==0:
+    
+    # run 
+    def run (self, gamma, Amp, P, ELA_mean, dt, dx):
+        global t  # this makes it global to be bale to use in in the ELA_func index
+        for t in range(len(self.timestep)):
+            self.dQdx=new_glacier.dQdx_func(dx)
+            self.dHdt=new_glacier.b_func(gamma, Amp, P, ELA_mean)-self.dqdx
+            self.H+=self.dHdt*dt
+            self.z=self.H+self.zb
+            self.z=self.z
+            for i in range(0, len(self.z)):#bottom limit of z can't go below zb
+                if self.z[i]<self.zb[i]:
+                    self.z[i]=self.zb[i]
+                if self.timestep[t] % 1 ==0:
 
 # finalize
-                def finalize(self):
-                    self.fb.savefig('2D_glacier_attempt.jpg')
+                    def finalize(self):
+                        self.fb.savefig('2D_glacier_attempt.jpg')
 
 new_glacier=Glacier()
 
@@ -139,7 +151,7 @@ new_glacier=Glacier()
 new_glacier.start_conds(t_min, t_max, dt, x_min, x_max, dx, z_max, S, Ho)
 
 #run
-new_glacier.run(gamma, Amp, P, ELA, dt, dx)
+new_glacier.run(gamma, Amp, P, ELA_mean, dt, dx)
 
 #finalize
 new_glacier.finalize()
