@@ -31,7 +31,7 @@ dx = 1000.0          # node spacing [=] m
 z_max = 4100.0       # maximum elevation of valley floor [=] m
 side_S = 0.2         # slope of the valley sides
 S = 0.02             # slope of glacier elevation (linear function)
-ELA = 3600.0         # equilibrium-line altitude [=] m
+ELA_mean = 3600.0    # mean equilibrium-line altitude [=] m
 gamma = 0.01         # mass balance coefficient [=] m/yr/m
 b_cap = 1.5          # cap on the mass balance [=] m/yr
 Amp = 500            # Amplitude of the oscillations [=] m
@@ -61,7 +61,7 @@ H = mg.add_zeros('node', 'ice_thickness')
 z_ice = mg.add_empty('node', 'ice_elevation')
 dZicedx = mg.add_zeros('link', 'ice_surface_slope')
 
-# Initialize 2-D elevations (simple, open book)
+# initialize 2-D elevations (simple, open book)
 
 z[:] = z_max - mg.node_x * S
 z +=  side_S * np.abs(mg.node_y - mg.dx * ((num_rows - 1) / 2.0))
@@ -74,52 +74,53 @@ z_ice[:] = z + H
 
 class Glacier:
 
-     # ELA
+    # ELA
     def ELA_func(self, Amp, P, ELA_mean):
        self.ELA = ELA_mean + (Amp*np.sin(2*np.pi*(self.timestep[t]/P)))
        return self.ELA
 
     # mass balance
     def b_func (self, gamma, Amp, P, ELA, b_cap):
-        self.b = gamma*(self.z-new_glacier.ELA_func(Amp, P, ELA))
-        return self.b     
+        self.b = gamma*(self.z-new_glacier.ELA_func(Amp, P, ELA_mean))
+        return self.b 
+
     # loop
 
     for i in range(2):
 
-        # Ice-surface slope
+        # ice-surface slope
         dZicedx[mg.active_links] = mg.calculate_gradients_at_active_links(z_ice)
 
-        # Thickness at links
+        # thickness at links
         H_edge = mg.map_mean_of_link_nodes_to_link('ice_thickness')
 
-        # Discharge
+        # discharge
         def dQdx_func(self, dx):
-            self.dQdx=-np.sign(np.diff(new_glacier.Q(A, rho_ice, g, dx))/dx)
+            self.dQdx=-np.sign(np.diff(new_glacier.Q(A, rho_ice, g, N_flow, dx))/dx)
             return self.dQdx
-        Q = dQdx * dx
-    
-        # Thickness of the ice
-        def dHdt_func(self, ):
-            self.dHdt=-(np.diff(new_glacier.H(A, rho_ice, g, dx))/dx)
-            return self.dHdx
+        Q = A * ((rho_ice * g * S)**N_flow) 
+
+        # thickness of the ice
+        def dHdt_func(self, dt):
+            self.dHdt=-(np.diff(new_glacier.H(A, rho_ice, g, N_flow, dt))/dt)
+            return self.dHdt
 
         # testing what was written above...
         print(H)
         print(H_edge)
 
-        # Update ice-surface elevation
+        # update ice-surface elevation...
         z_ice[:] = z + H
 
-        # testing
+        # more testing...
         print(z_ice)
 
 # run 
-def run (self, gamma, Amp, P, ELA, dt, dx):
-    global t  # make global so that it can be used in ELA_func as index
+def run (self, gamma, Amp, P, ELA_mean, dt, dx):
+    global t  # this makes it global to be bale to use in in the ELA_func index
     for t in range(len(self.timestep)):
         self.dQdx=new_glacier.dQdx_func(dx)
-        self.dHdt=new_glacier.b_func(gamma, Amp, P, ELA)-self.dqdx
+        self.dHdt=new_glacier.b_func(gamma, Amp, P, ELA_mean)-self.dqdx
         self.H+=self.dHdt*dt
         self.z=self.H+self.zb
         self.z=self.z
