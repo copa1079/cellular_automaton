@@ -19,7 +19,8 @@ import pylab as plt
 
 plt.clf() 
 
-##other libraries that may be needed...
+# other libraries that may be needed...
+
 #from landlab.io import read_esri_ascii
 #from landlab.plot.imshow import imshow_node_grid
 #from matplotlib import pyplot as plt
@@ -31,7 +32,7 @@ dt = 0.001           # time step [=] years
 x_min = 0.0          # minimum distance [=] m
 x_max = 10000.0      # maximum distance [=] m
 dx = 1000.0          # node spacing [=] m
-z_max = 4100.0       # maximum elevation of valley floor [=] m
+z_max = 4000.0       # maximum elevation of valley floor [=] m
 side_S = 0.2         # slope of the valley sides
 S = 0.02             # slope of glacier elevation (linear function)
     
@@ -43,9 +44,9 @@ rho_ice = 917        # density of ice [=] kg m^-3
 g = 9.81             # gravity [=] m s^-2
 
 # climate parameters 
-ELA_mean = 3600.0    # mean equilibrium-line altitude [=] m
+ELA_mean = 3700.0    # mean equilibrium-line altitude [=] m
 gamma = 0.01         # mass balance coefficient [=] m/yr/m
-b_cap = 1.5          # cap on the mass balance [=] m/yr
+b_cap = 2.00        # cap on the mass balance [=] m/yr
 Amp = 500            # Amplitude of the oscillations [=] m
 P = 2000             # period of the ELA osillations [=] years
 
@@ -76,7 +77,7 @@ mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 core_nodes = mg.core_nodes
 
 # setting up ice thickness
-z_ice[:] = z + H 
+z_ice[:] = z + H
 
 # time
 
@@ -129,7 +130,7 @@ class Glacier:
     
     # run 
     def run (self, gamma, Amp, P, ELA_mean, dt, dx):
-        global t  # this makes it global to be bale to use in in the ELA_func index
+        global t  # this makes it global to use in the ELA_func index
         for t in range(len(self.timestep)):
             self.dQdx=new_glacier.dQdx_func(dx)
             self.dHdt=new_glacier.b_func(gamma, Amp, P, ELA_mean)-self.dqdx
@@ -141,7 +142,7 @@ class Glacier:
                     self.z[i]=self.zb[i]
                 if self.timestep[t] % 1 ==0:
 
-# finalize
+    # finalize
                     def finalize(self):
                         self.fb.savefig('2D_glacier_attempt.jpg')
 
