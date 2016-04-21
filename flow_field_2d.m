@@ -6,6 +6,9 @@
 %  c6  c7   c8  Iain Haslam, March 2006.
 % Comments added by GT, April 2007
 % Edited by Cole Pazar, April 2016, for playing around with 2D models
+%
+% go to: https://github.com/copa1079/cellular_automaton  for more outputs etc.
+%
 %% initialize code
 % constants
 font = 18;
